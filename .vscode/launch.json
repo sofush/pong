@@ -5,6 +5,63 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "preLaunchTask": "${defaultBuildTask}",
+            "type": "probe-rs-debug",
+            "request": "launch",
+            "name": "Launch",
+            "cwd": "${workspaceFolder}",
+            "coreConfigs": [
+                {
+                    "coreIndex": 0,
+                    "programBinary": "./target/thumbv7em-none-eabihf/debug/pong",
+                    "rttEnabled": true,
+                    "rttChannelFormats": [
+                        {
+                            "channelNumber": 0,
+                            // Format RTT data as String data
+                            "dataFormat": "String",
+                            // Include host-side timestamps for every line of data transferred from the target RTT output
+                            "showTimestamps": true
+                        },
+                        {
+                            "channelNumber": 1,
+                            // Treat data as raw binary data, and do not format in any way
+                            "dataFormat": "BinaryLE"
+                        }
+                    ]
+                }
+            ],
+            "chip": "nRF52833_xxAA",
+            "flashingConfig": {
+                "flashingEnabled": true,
+                "haltAfterReset": false
+            },
+        },
+        {
+            "type": "probe-rs-debug",
+            "request": "attach",
+            "name": "probe-rs attach to GDB",
+            "cwd": "${workspaceFolder}",
+            //!MODIFY (or remove)
+            "speed": 24000,
+            "chip": "nrf52833_xxAA",
+            "probe": "0d28:0204:9906360200052820963e29e70ed248d4000000006e052820",
+            "coreConfigs": [
+                {
+                    "coreIndex": 0,
+                    "programBinary": "./target/thumbv7em-none-eabihf/debug/pong",
+                    "rttEnabled": true
+                }
+            ],
+            "env": {
+                //!MODIFY (or remove)
+                // If you set this variable, check the VSCode console log window for the location of the log file.
+                "RUST_LOG": "info"
+            },
+            // Info, Debug
+            "consoleLogLevel": "Console",
+        },
+        {
             "name": "Cortex Debug",
             "type": "cortex-debug",
             "cwd": "${workspaceFolder}",
@@ -17,7 +74,7 @@
                 "interface/cmsis-dap.cfg",
                 "target/nrf52.cfg"
             ],
-            "preLaunchTask": "rust: cargo build"
+            "preLaunchTask": "rust: cargo build",
         },
         {
             "name": "Cortex Remote Debug",
@@ -27,7 +84,7 @@
             "request": "launch",
             "runToEntryPoint": "pong::main",
             "servertype": "external",
-            "gdbPath": "gdb-multiarch",
+            "gdbPath": "gdb",
             "loadFiles": [],
             "gdbTarget": "127.0.0.1:1337",
             "postRestartCommands": [

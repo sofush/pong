@@ -3,18 +3,53 @@
 #![no_std]
 
 use cortex_m_rt::entry;
-use microbit::hal::prelude::*;
-use microbit::{self as _, Board};
-use panic_halt as _;
+use embedded_hal_nb::serial::{Read, Write};
+use microbit::hal::{
+    Uarte,
+    uarte::{Baudrate, Parity},
+};
+use panic_rtt_target as _;
+use rtt_target::rtt_init_print;
+
+mod serial_setup;
+use serial_setup::UartePort;
+
+mod buttons_setup;
+use buttons_setup::{Button, init_buttons};
 
 #[entry]
-fn entry() -> ! {
-    main()
-}
-
 fn main() -> ! {
-    let mut board = Board::take().unwrap();
-    board.display_pins.col1.set_high().unwrap();
-    board.display_pins.row1.set_low().unwrap();
-    loop {}
+    rtt_init_print!();
+
+    let board = microbit::Board::take().unwrap();
+
+    init_buttons(board.GPIOTE, board.buttons);
+
+    let mut serial = {
+        let uarte = Uarte::new(
+            board.UARTE0,
+            board.uart.into(),
+            Parity::EXCLUDED,
+            Baudrate::BAUD115200,
+        );
+        UartePort::new(uarte)
+    };
+
+    loop {
+        let event = buttons_setup::get_button_event(true);
+
+        let Some(event) = event else {
+            continue;
+        };
+
+        let msg = match event {
+            buttons_setup::Button::Left => "Left",
+            buttons_setup::Button::Right => "Right",
+            buttons_setup::Button::Both => "Both",
+        };
+
+        use core::fmt::Write;
+        write!(serial, "{msg}\r\n").unwrap();
+        nb::block!(serial.flush()).unwrap();
+    }
 }
