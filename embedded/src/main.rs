@@ -2,6 +2,10 @@
 #![no_main]
 #![no_std]
 
+mod buttons_setup;
+mod serial_setup;
+
+use buttons_setup::{ButtonState, init_buttons};
 use cortex_m_rt::entry;
 use embedded_hal_nb::serial::Write;
 use microbit::hal::{
@@ -9,13 +13,8 @@ use microbit::hal::{
     uarte::{Baudrate, Parity},
 };
 use panic_rtt_target as _;
-use rtt_target::rtt_init_print;
-
-mod serial_setup;
+use rtt_target::{rprintln, rtt_init_print};
 use serial_setup::UartePort;
-
-mod buttons_setup;
-use buttons_setup::init_buttons;
 
 #[entry]
 fn main() -> ! {
@@ -35,17 +34,27 @@ fn main() -> ! {
         UartePort::new(uarte)
     };
 
-    loop {
-        let event = buttons_setup::get_button_event(true);
+    let mut latest_state = ButtonState::default();
 
-        let Some(event) = event else {
+    loop {
+        let button_state = buttons_setup::get_button_state();
+
+        let Some(button_state) = button_state else {
             continue;
         };
 
-        let msg = match event {
-            buttons_setup::Button::Left => "Left",
-            buttons_setup::Button::Right => "Right",
-            buttons_setup::Button::Both => "Both",
+        if button_state == latest_state {
+            continue;
+        }
+
+        latest_state = button_state;
+
+        let Ok(msg) = serde_json_core::to_string::<_, 100>(&button_state)
+        else {
+            rprintln!("Error");
+            write!(serial, "Error").unwrap();
+            nb::block!(serial.flush()).unwrap();
+            continue;
         };
 
         use core::fmt::Write;

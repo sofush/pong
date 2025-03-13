@@ -26,3 +26,5 @@ heapless = "0.8.0"
 microbit-v2 = "0.15.1"
 embedded-hal-nb = "1.0.0"
 embedded-io = "0.6.1"
+serde-json-core = "0.6.0"
+serde = { version = "1.0.219", default-features = false }
