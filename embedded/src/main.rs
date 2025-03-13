@@ -3,7 +3,7 @@
 #![no_std]
 
 use cortex_m_rt::entry;
-use embedded_hal_nb::serial::{Read, Write};
+use embedded_hal_nb::serial::Write;
 use microbit::hal::{
     Uarte,
     uarte::{Baudrate, Parity},
@@ -15,7 +15,7 @@ mod serial_setup;
 use serial_setup::UartePort;
 
 mod buttons_setup;
-use buttons_setup::{Button, init_buttons};
+use buttons_setup::init_buttons;
 
 #[entry]
 fn main() -> ! {
