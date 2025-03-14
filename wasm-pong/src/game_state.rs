@@ -1,8 +1,14 @@
 use crate::{
     ball::Ball,
-    paddle::{Paddle, Side},
+    keyboard::Keyboard,
+    paddle::{Direction, Paddle, Side},
     screen::Screen,
 };
+
+const LEFT_UP_KEYS: &[&'static str] = &["w", "k"];
+const LEFT_DOWN_KEYS: &[&'static str] = &["s", "j"];
+const RIGHT_UP_KEYS: &[&'static str] = &["arrowup"];
+const RIGHT_DOWN_KEYS: &[&'static str] = &["arrowdown"];
 
 pub struct GameState {
     last_tick: web_time::Instant,
@@ -10,18 +16,20 @@ pub struct GameState {
     screen: Screen,
     right_paddle: Paddle,
     left_paddle: Paddle,
+    keyboard: Keyboard,
 }
 
 impl GameState {
-    pub fn new(screen: Screen) -> Self {
+    pub fn new(screen: Screen, keyboard: Keyboard) -> Self {
         let ball = Ball::new(screen);
 
         Self {
             last_tick: web_time::Instant::now(),
             ball,
             screen,
-            right_paddle: Paddle::new(Side::Right),
-            left_paddle: Paddle::new(Side::Left),
+            right_paddle: Paddle::new(Side::Right, true),
+            left_paddle: Paddle::new(Side::Left, false),
+            keyboard,
         }
     }
 
@@ -32,14 +40,23 @@ impl GameState {
         let delta_time = now - self.last_tick;
         self.last_tick = now;
 
-        self.left_paddle.update(delta_time);
-        self.right_paddle.update(delta_time);
+        let left_paddle_direction =
+            self.get_direction(LEFT_UP_KEYS, LEFT_DOWN_KEYS);
+        let right_paddle_direction =
+            self.get_direction(RIGHT_UP_KEYS, RIGHT_DOWN_KEYS);
+
+        self.left_paddle.change_direction(left_paddle_direction);
+        self.right_paddle.change_direction(right_paddle_direction);
+
         self.ball.update(
             screen,
             delta_time,
             self.right_paddle,
             self.left_paddle,
         );
+
+        self.left_paddle.update(delta_time, self.ball);
+        self.right_paddle.update(delta_time, self.ball);
     }
 
     pub fn ball(&self) -> Ball {
@@ -50,19 +67,30 @@ impl GameState {
         self.left_paddle
     }
 
-    pub fn left_paddle_mut(&mut self) -> &mut Paddle {
-        &mut self.left_paddle
-    }
-
     pub fn right_paddle(&self) -> Paddle {
         self.right_paddle
     }
 
-    pub fn right_paddle_mut(&mut self) -> &mut Paddle {
-        &mut self.right_paddle
-    }
-
     pub fn screen(&self) -> Screen {
         self.screen
+    }
+
+    pub fn keyboard_mut(&mut self) -> &mut Keyboard {
+        &mut self.keyboard
+    }
+
+    pub fn get_direction(
+        &self,
+        up_keys: &[&'static str],
+        down_keys: &[&'static str],
+    ) -> Direction {
+        let up = self.keyboard.is_any_pressed(up_keys);
+        let down = self.keyboard.is_any_pressed(down_keys);
+
+        return match (down, up) {
+            (false, true) => Direction::Up,
+            (true, false) => Direction::Down,
+            _ => Direction::None,
+        };
     }
 }

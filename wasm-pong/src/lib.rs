@@ -2,8 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use game_state::GameState;
 use gloo::events::EventListener;
+use keyboard::Keyboard;
 use log::Level;
-use paddle::Direction;
 use screen::Screen;
 use wasm_bindgen::prelude::*;
 use web_sys::HtmlCanvasElement;
@@ -11,6 +11,7 @@ use web_sys::HtmlCanvasElement;
 mod ball;
 mod bounding_box;
 mod game_state;
+mod keyboard;
 mod paddle;
 mod screen;
 mod vec2;
@@ -52,22 +53,32 @@ fn run() -> Result<(), JsValue> {
         canvas.offset_width().into(),
         canvas.offset_height().into(),
     );
-    let state = Rc::new(RefCell::new(GameState::new(screen)));
+
+    let keyboard = Keyboard::default();
+    let state = Rc::new(RefCell::new(GameState::new(screen, keyboard)));
     let state_clone = Rc::clone(&state);
+
     let render_ref = Rc::new(RefCell::new(None));
     let render_ref_clone = render_ref.clone();
 
+    let handle_key = Rc::new(move |key: &str, down: bool| {
+        if down {
+            state_clone.borrow_mut().keyboard_mut().press(key);
+        } else {
+            state_clone.borrow_mut().keyboard_mut().release(key);
+        }
+    });
+    let handle_key_clone = Rc::clone(&handle_key);
+
     EventListener::new(&window(), "keydown", move |e| {
         let event = e.dyn_ref::<web_sys::KeyboardEvent>().unwrap_throw();
-        log::info!("{:?}", event.key());
-        let _ = state_clone
-            .borrow_mut()
-            .left_paddle_mut()
-            .change_direction(Direction::Down);
-        let _ = state_clone
-            .borrow_mut()
-            .right_paddle_mut()
-            .change_direction(Direction::Down);
+        handle_key(&event.key(), true);
+    })
+    .forget();
+
+    EventListener::new(&window(), "keyup", move |e| {
+        let event = e.dyn_ref::<web_sys::KeyboardEvent>().unwrap_throw();
+        handle_key_clone(&event.key(), false);
     })
     .forget();
 

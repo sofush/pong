@@ -1,4 +1,6 @@
-use crate::{bounding_box::BoundingBox, screen::Screen, vec2::Vec2};
+use crate::{
+    ball::Ball, bounding_box::BoundingBox, screen::Screen, vec2::Vec2,
+};
 use web_sys::CanvasRenderingContext2d;
 
 const HEIGHT: f64 = 0.45;
@@ -45,14 +47,18 @@ impl Paddle {
         }
     }
 
-    pub fn update(&mut self, delta_time: std::time::Duration) {
+    pub fn update(&mut self, delta_time: std::time::Duration, ball: Ball) {
         let change = match self.direction {
             Direction::Down => SPEED * delta_time.as_secs_f64(),
             Direction::Up => -SPEED * delta_time.as_secs_f64(),
-            Direction::None => 0.0,
+            Direction::None => return,
         };
 
+        let min_y = -1.0 + self.bounding_box.size.y / 2.0;
+        let max_y = 1.0 - self.bounding_box.size.y / 2.0;
+
         self.bounding_box.pos.y += change;
+        self.bounding_box.pos.y = self.bounding_box.pos.y.clamp(min_y, max_y);
     }
 
     pub fn draw(&self, screen: Screen, context: &CanvasRenderingContext2d) {
