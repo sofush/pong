@@ -4,9 +4,9 @@ use crate::{
 use web_sys::CanvasRenderingContext2d;
 
 const HEIGHT: f64 = 0.45;
-const WIDTH: f64 = 0.025;
-const MARGIN: f64 = 0.01;
-const SPEED: f64 = 0.35;
+const WIDTH: f64 = 0.035;
+const MARGIN: f64 = 0.05;
+const SPEED: f64 = 0.85;
 
 #[derive(Clone, Copy, Debug)]
 pub enum Side {

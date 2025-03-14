@@ -5,7 +5,7 @@ use crate::{
 };
 use web_sys::CanvasRenderingContext2d;
 
-const SPEED: f64 = 0.5;
+const SPEED: f64 = 0.7;
 const SIZE: f64 = 0.05;
 
 #[derive(Debug, Clone, Copy)]
