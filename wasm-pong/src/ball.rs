@@ -81,4 +81,8 @@ impl Ball {
             .round_rect_with_f64(x, y, width, height, 1_000_000.0)
             .unwrap();
     }
+
+    pub fn pos(&self) -> Vec2 {
+        self.bounding_box.pos
+    }
 }

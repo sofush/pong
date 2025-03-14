@@ -26,10 +26,11 @@ pub struct Paddle {
     bounding_box: BoundingBox,
     side: Side,
     direction: Direction,
+    automatic: bool,
 }
 
 impl Paddle {
-    pub fn new(side: Side) -> Self {
+    pub fn new(side: Side, automatic: bool) -> Self {
         let half_width = WIDTH / 2.0;
 
         let pos = match side {
@@ -44,10 +45,32 @@ impl Paddle {
             },
             side,
             direction: Direction::None,
+            automatic,
         }
     }
 
     pub fn update(&mut self, delta_time: std::time::Duration, ball: Ball) {
+        if self.automatic {
+            let ball_y = ball.pos().y;
+            let paddle_y = self.bounding_box.pos.y;
+
+            log::info!(
+                "Automatic paddle: ball = {}, paddle = {}",
+                ball_y,
+                paddle_y
+            );
+
+            if ball_y > paddle_y {
+                self.direction = Direction::Down;
+            } else if ball_y < paddle_y {
+                self.direction = Direction::Up;
+            } else {
+                self.direction = Direction::None;
+            }
+
+            log::info!("New direction: {:?}", self.direction);
+        }
+
         let change = match self.direction {
             Direction::Down => SPEED * delta_time.as_secs_f64(),
             Direction::Up => -SPEED * delta_time.as_secs_f64(),
