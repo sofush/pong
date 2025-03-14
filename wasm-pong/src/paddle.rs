@@ -54,7 +54,7 @@ impl Paddle {
             let ball_y = ball.pos().y;
             let paddle_y = self.bounding_box.pos.y;
 
-            log::info!(
+            log::debug!(
                 "Automatic paddle: ball = {}, paddle = {}",
                 ball_y,
                 paddle_y
@@ -68,7 +68,7 @@ impl Paddle {
                 self.direction = Direction::None;
             }
 
-            log::info!("New direction: {:?}", self.direction);
+            log::debug!("New direction: {:?}", self.direction);
         }
 
         let change = match self.direction {
