@@ -640,22 +640,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gameserver"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-web",
- "actix-ws",
- "anyhow",
- "env_logger",
- "futures-util",
- "log",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -717,6 +701,22 @@ dependencies = [
  "bytes",
  "fnv",
  "itoa",
+]
+
+[[package]]
+name = "http-pong"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "actix-ws",
+ "anyhow",
+ "env_logger",
+ "futures-util",
+ "log",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
