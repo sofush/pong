@@ -1,4 +1,7 @@
+use futures::StreamExt;
+use gloo::net::websocket::{futures::WebSocket, Message};
 use std::{cell::RefCell, rc::Rc};
+use wasm_bindgen_futures::spawn_local;
 
 use game_state::GameState;
 use gloo::events::EventListener;
@@ -12,6 +15,7 @@ mod ball;
 mod bounding_box;
 mod game_state;
 mod keyboard;
+mod microbit_state;
 mod paddle;
 mod screen;
 mod vec2;
@@ -57,6 +61,9 @@ fn run() -> Result<(), JsValue> {
     let keyboard = Keyboard::default();
     let state = Rc::new(RefCell::new(GameState::new(screen, keyboard)));
     let state_clone = Rc::clone(&state);
+    let state_clone_three = Rc::clone(&state);
+
+    init_websocket(state_clone_three);
 
     let render_ref = Rc::new(RefCell::new(None));
     let render_ref_clone = render_ref.clone();
@@ -99,6 +106,35 @@ fn run() -> Result<(), JsValue> {
 
     request_animation_frame(render_ref.borrow().as_ref().unwrap());
     Ok(())
+}
+
+fn init_websocket(game_state: Rc<RefCell<GameState>>) {
+    let ws = WebSocket::open("/websocket").unwrap();
+    let (_, mut reader) = ws.split();
+
+    spawn_local(async move {
+        while let Some(Ok(msg)) = reader.next().await {
+            let microbit_state = match msg {
+                Message::Text(t) => match serde_json::from_str(&t) {
+                    Ok(msg) => msg,
+                    Err(_) => {
+                        log::error!("Could not deserialize JSON message from websocket.");
+                        continue;
+                    }
+                },
+                Message::Bytes(_) => {
+                    log::warn!("Got bytes message from websocket, skipping.");
+                    continue;
+                }
+            };
+
+            game_state
+                .borrow_mut()
+                .update_microbit_state(microbit_state);
+        }
+
+        log::error!("WebSocket closed");
+    });
 }
 
 fn render(state: &mut GameState) {

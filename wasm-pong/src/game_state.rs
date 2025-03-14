@@ -1,6 +1,7 @@
 use crate::{
     ball::Ball,
     keyboard::Keyboard,
+    microbit_state::MicrobitState,
     paddle::{Direction, Paddle, Side},
     screen::Screen,
 };
@@ -17,6 +18,7 @@ pub struct GameState {
     right_paddle: Paddle,
     left_paddle: Paddle,
     keyboard: Keyboard,
+    microbit_state: MicrobitState,
 }
 
 impl GameState {
@@ -30,6 +32,7 @@ impl GameState {
             right_paddle: Paddle::new(Side::Right, true),
             left_paddle: Paddle::new(Side::Left, false),
             keyboard,
+            microbit_state: MicrobitState::default(),
         }
     }
 
@@ -40,8 +43,14 @@ impl GameState {
         let delta_time = now - self.last_tick;
         self.last_tick = now;
 
-        let left_paddle_direction =
-            self.get_direction(LEFT_UP_KEYS, LEFT_DOWN_KEYS);
+        let left_paddle_direction = match (
+            self.microbit_state.left_pressed,
+            self.microbit_state.right_pressed,
+        ) {
+            (true, false) => Direction::Up,
+            (false, true) => Direction::Down,
+            _ => Direction::None,
+        };
         let right_paddle_direction =
             self.get_direction(RIGHT_UP_KEYS, RIGHT_DOWN_KEYS);
 
@@ -92,5 +101,9 @@ impl GameState {
             (true, false) => Direction::Down,
             _ => Direction::None,
         };
+    }
+
+    pub fn update_microbit_state(&mut self, state: MicrobitState) {
+        self.microbit_state = state;
     }
 }
