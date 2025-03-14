@@ -7,6 +7,7 @@ use web_sys::CanvasRenderingContext2d;
 
 const SPEED: f64 = 0.7;
 const SIZE: f64 = 0.05;
+const MARGIN: f64 = 0.001;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Ball {
@@ -45,24 +46,41 @@ impl Ball {
             self.direction.y * delta_time.as_secs_f64() * screen.aspect_ratio();
         self.bounding_box.pos.x += self.direction.x * delta_time.as_secs_f64();
 
-        if self.bounding_box.pos.y >= 1.0 || self.bounding_box.pos.y <= -1.0 {
+        if self.bounding_box.bottom() >= 1.0 {
             self.direction.y = -self.direction.y;
-            self.direction.y -= 0.01;
+            self.bounding_box.pos.y =
+                1.0 - self.bounding_box.size.y / 2.0 - MARGIN;
         }
 
-        if self.bounding_box.collides_with(right_paddle.bounding_box()) {
-            self.direction = Vec2::new(-SPEED, 0.0);
+        if self.bounding_box.top() <= -1.0 {
+            self.direction.y = -self.direction.y;
+            self.bounding_box.pos.y =
+                -1.0 + self.bounding_box.size.y / 2.0 + MARGIN;
         }
 
-        if self.bounding_box.collides_with(left_paddle.bounding_box()) {
-            self.direction = Vec2::new(SPEED, 0.0);
+        if self.bounding_box.collides_with(right_paddle.bounding_box())
+            && self.bounding_box.pos.x < right_paddle.bounding_box().left()
+        {
+            self.direction.x = -self.direction.x;
+            self.bounding_box.pos.x = right_paddle.bounding_box().left()
+                - self.bounding_box.size.x / 2.0
+                - MARGIN;
         }
 
-        if self.bounding_box.pos.x <= -1.0 {
+        if self.bounding_box.collides_with(left_paddle.bounding_box())
+            && self.bounding_box.pos.x > left_paddle.bounding_box().right()
+        {
+            self.direction.x = -self.direction.x;
+            self.bounding_box.pos.x = left_paddle.bounding_box().right()
+                + self.bounding_box.size.x / 2.0
+                + MARGIN;
+        }
+
+        if self.bounding_box.left() <= -1.0 {
             self.reset();
         }
 
-        if self.bounding_box.pos.x >= 1.0 {
+        if self.bounding_box.right() >= 1.0 {
             self.reset();
         }
     }
