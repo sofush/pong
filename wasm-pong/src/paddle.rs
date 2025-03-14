@@ -97,7 +97,7 @@ impl Paddle {
             height
         );
 
-        context.set_fill_style_str("white");
+        context.set_fill_style_str("#ccc");
         context
             .round_rect_with_f64(x, y, width, height, 5.0)
             .unwrap();
