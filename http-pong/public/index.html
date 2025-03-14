@@ -5,14 +5,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pong</title>
+    <style>
+        html,
+        body,
+        canvas {
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: absolute;
+            background: rgb(27, 27, 27);
+            z-index: 0;
+        }
+    </style>
 </head>
 
 <body>
+    <canvas id="canvas"></canvas>
     <script type="module">
-        import init, { greet } from '/public/pkg/wasm_pong.js';
+        import init from '/public/pkg/wasm_pong.js';
 
-        init().then(() => {
-            greet("WebAssembly");
+        init().then(async () => {
+            console.log('Webassembly has loaded.');
         });
     </script>
 </body>
